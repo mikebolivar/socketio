@@ -27,7 +27,7 @@ io.on('connection', function (socket) {
 		sendComments(socket);
 	});
 
-	/*socket.on('newComment', function (comment, callback) {
+	socket.on('newComment', function (comment, callback) {
 		fs.readFile('_comments.json', 'utf8', function(err, comments) {
 			comments = JSON.parse(comments);
 			comments.push(comment);
@@ -38,7 +38,7 @@ io.on('connection', function (socket) {
 		});
 
 	});
-*/
+
 
 	socket.on('disconnect', function(){
         console.log('Client has disconnected. Id: ' + socket.id);
