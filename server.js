@@ -6,8 +6,8 @@ var express = require('express');
 var app = express();
 app.use('/', express.static(path.join(__dirname, 'public')));
 
-var server = app.listen(80);
-console.log('Server listening on port 80');
+var server = app.listen(8081);
+console.log('Server listening on port 8081');
 
 // Socket.IO part
 var io = require('socket.io')(server);
@@ -20,13 +20,14 @@ var sendComments = function (socket) {
 };
 
 io.on('connection', function (socket) {
-  console.log('New client connected!');
+
+	console.log('New client connected! Id: ' + socket.id);
   
-  socket.on('fetchComments', function () {
+  	socket.on('fetchComments', function () {
 		sendComments(socket);
 	});
 
-	socket.on('newComment', function (comment, callback) {
+	/*socket.on('newComment', function (comment, callback) {
 		fs.readFile('_comments.json', 'utf8', function(err, comments) {
 			comments = JSON.parse(comments);
 			comments.push(comment);
@@ -35,5 +36,11 @@ io.on('connection', function (socket) {
 				callback(err);
 			});
 		});
+
 	});
+*/
+
+	socket.on('disconnect', function(){
+        console.log('Client has disconnected. Id: ' + socket.id);
+    });
 });
