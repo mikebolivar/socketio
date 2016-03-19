@@ -13,7 +13,7 @@ console.log('Server listening on port 8081');
 var io = require('socket.io')(server);
 
 var sendComments = function (socket) {
-	fs.readFile('_comments.json', 'utf8', function(err, comments) {
+	fs.readFile(__dirname + '/_comments.json', 'utf8', function(err, comments) {
 		comments = JSON.parse(comments);
 		socket.emit('comments', comments);
 	});
@@ -31,7 +31,7 @@ io.on('connection', function (socket) {
 		fs.readFile('_comments.json', 'utf8', function(err, comments) {
 			comments = JSON.parse(comments);
 			comments.push(comment);
-			fs.writeFile('_comments.json', JSON.stringify(comments, null, 4), function (err) {
+			fs.writeFile(__dirname +'/_comments.json', JSON.stringify(comments, null, 4), function (err) {
 				io.emit('comments', comments);
 				callback(err);
 			});
