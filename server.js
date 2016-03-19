@@ -6,7 +6,7 @@ var express = require('express');
 var app = express();
 app.use('/', express.static(path.join(__dirname, 'public')));
 
-var server = app.listen(80);
+var server = app.listen((process.env.PORT || 5000));
 console.log('Server listening on port 8081');
 
 // Socket.IO part
