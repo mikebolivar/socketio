@@ -77,8 +77,11 @@ router.route('/comments')
 
     // create a bear (accessed at POST http://localhost:8080/api/bears)
     .post(function(req, res) {
+    	query = 'INSERT INTO comments (author,text, product_id) VALUES ("'+ req.body.author+'","'+ req.body.text+'","'+ req.body.product_id+'")';
 
-		connection.query('INSERT INTO comments (author,text) VALUES ("'+ req.body.author+'","'+ req.body.text+'")', function(err, rows, fields) {
+    	console.log(query);
+
+		connection.query( query, function(err, rows, fields) {
 		  if (err) throw err;
 
             res.json({ message: 'Comment created!' });
@@ -96,7 +99,23 @@ router.route('/comments')
             res.json(rows);
 		});
 
-    });    
+    });
+
+
+// on routes that end in /bears/:bear_id
+// ----------------------------------------------------
+router.route('/product/:product_id/comments')
+
+    // get the bear with that id (accessed at GET http://localhost:8080/api/bears/:bear_id)
+    .get(function(req, res) {
+        
+        connection.query('SELECT * FROM comments WHERE product_id = "'+ req.params.product_id +'"', function(err, rows, fields) {
+		  if (err) throw err;
+
+            res.json(rows);
+		});
+
+    })        
 
 
 // REGISTER OUR ROUTES -------------------------------
@@ -136,7 +155,7 @@ io.on('connection', function (socket) {
 
 	socket.on('newComment', function (comment, callback) {
 
-		connection.query('INSERT INTO comments (author,text) VALUES ("'+ comment.author +'","'+ comment.text+'")', function(err, rows, fields) {
+		connection.query('INSERT INTO comments (author,text, product_id) VALUES ("'+ comment.author +'","'+ comment.text+'", "'+ comment.product_id +'")', function(err, rows, fields) {
 			if (err) throw err;
 		 	console.log("comment created");
 			connection.query('SELECT * FROM comments', function(err, comments, fields) {

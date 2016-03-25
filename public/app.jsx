@@ -4,15 +4,26 @@ var CommentBox = React.createClass({
 			comments: null
 		};
 	},
-	componentDidMount: function () {
+	loadCommentsFromServer: function() {
+	    $.ajax({
+	      url: this.props.url,
+	      dataType: 'json',
+	      cache: false,
+	      success: function(data) {
+	        this.setState({comments: data});
+	      }.bind(this),
+	      error: function(xhr, status, err) {
+	        console.error(this.props.url, status, err.toString());
+	      }.bind(this)
+	    });
+  	},
+  	componentDidMount: function() {
+    	this.loadCommentsFromServer();
+    	setInterval(this.loadCommentsFromServer, this.props.pollInterval);
+  	},
+	submitComment: function (comment, callback) {
 		var that = this;
 		this.socket = io();
-		this.socket.on('comments', function (comments) {
-			that.setState({ comments: comments });
-		});
-		this.socket.emit('fetchComments');
-	},
-	submitComment: function (comment, callback) {
 		this.socket.emit('newComment', comment, function (err) {
 			if (err)
 				return console.error('New comment error:', err);
@@ -24,7 +35,7 @@ var CommentBox = React.createClass({
 			<div className="commentBox">
 				<h3>Comments:</h3>
 				<CommentList comments={this.state.comments}/>
-				<CommentForm submitComment={this.submitComment}/>
+				<CommentForm submitComment={this.submitComment} product={this.props.product}/>
 			</div>
 		);
 	}
@@ -56,11 +67,13 @@ var Comment = React.createClass({
 });
 var CommentForm = React.createClass({
 	handleSubmit: function (e) {
+		console.log("product",this.props.product);
 		e.preventDefault();
 		var that = this;
 		var author = this.refs.author.getDOMNode().value;
 		var text = this.refs.text.getDOMNode().value;
-		var comment = { author: author, text: text };
+		var comment = { author: author, text: text , product_id: this.props.product };
+		console.log("Saving ", comment);
 		var submitButton = this.refs.submitButton.getDOMNode();
 		submitButton.innerHTML = 'Posting comment...';
 		submitButton.setAttribute('disabled', 'disabled');
@@ -82,11 +95,11 @@ var CommentForm = React.createClass({
 	}
 });
 
-React.render(
-	<CommentBox/>,
+/*React.render(
+	<CommentBox url="http://localhost:5000/api/comments" pollInterval="2000"/>,
 	document.getElementById('content')
 );
-
+*/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,12 +151,14 @@ var ProductList = React.createClass({
 	}
 });
 var Product = React.createClass({
+
 	render: function () {
 		return (
 			<div className="comment">
 				<img src={this.props.product.photo} width="100px" />
 				<span className="author">{this.props.product.name}</span><br/>
 				<div className="body">{this.props.product.description}</div>
+				<CommentBox url={ "http://localhost:5000/api/product/" +  this.props.product.id + "/comments/"} product = {this.props.product.id} pollInterval="2000"/>
 			</div>
 		);
 	}
