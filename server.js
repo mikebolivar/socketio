@@ -10,29 +10,19 @@ var bodyParser = require('body-parser');
 
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
-  host     : '23.229.192.135',
+  host     : '223.229.192.135',
   user     : 'alobarodemo',
-  password : 'alobarodemo_',
+  password : 'alobarodemo',
   database : 'alobarodemo'
 });
 
 
-
-const Shopify = require('shopify-api-node');
-
-const shopify = new Shopify("alobaro", "7e8905ddf301133f68d73103def268ee", "fad748a80dd2e3b51e536a81fbc1bd16");
-
-shopify.product.list({ limit: 5 })
-  .then( 
-  	products => {
-
-  		console.log("Shopify products",products)
-  	}
-  )
-  .catch( err => console.error(err));
-
-
-
+var connection = mysql.createConnection({
+  host     : 'localhost',
+  user     : 'root',
+  password : 'jajaja',
+  database : 'socketio'
+});
 
 
 // Server part
@@ -139,7 +129,30 @@ router.route('/product/:product_id/comments')
             res.json(rows);
 		});
 
-    })        
+    }) 
+
+
+
+// on routes that end in /bears/:bear_id
+// ----------------------------------------------------
+router.route('/webhook')
+
+    // get the bear with that id (accessed at GET http://localhost:8080/api/bears/:bear_id)
+    .post(function(req, res) {
+        
+        console.log(req.params)
+        connection.query('INSERT INTO webhooks (params) VALUES ("'+ JSON.stringify(req.params) +'")', function(err, rows, fields) {
+		  if (err) throw err;
+
+            res.json(rows);
+		});
+
+		connection.query('SELECT * FROM products', function(err, products, fields) {
+					if (err) throw err;
+					io.emit('products', products);
+				});
+
+    });            
 
 
 // REGISTER OUR ROUTES -------------------------------
@@ -219,3 +232,45 @@ io.on('connection', function (socket) {
         console.log('Client has disconnected. Id: ' + socket.id);
     });
 });
+
+
+
+
+
+
+const Shopify = require('shopify-api-node');
+
+const shopify = new Shopify("alobaro", "7e8905ddf301133f68d73103def268ee", "fad748a80dd2e3b51e536a81fbc1bd16");
+
+/*
+shopify.product.list({ limit: 5 })
+  .then( 
+  	products => {
+
+  		console.log("Shopify products",products)
+  	}
+  )
+  .catch( err => console.error(err));
+
+
+shopify.webhook.list({ limit: 5 })
+  .then( 
+  	webhooks => console.log("Shopify w",webhooks)
+  )
+  .catch( err => console.error(err));
+
+
+/*
+shopify.webhook.update(168500100,
+{
+	"topic": "products\/create",
+    "address": "http:\/\/stark-shore-49013.herokuapp.com\/api\/webhook",
+    "format": "json"
+}
+	)
+  .then( 
+  	console.log("Shopify destroy w")
+  )
+  .catch( err => console.error(err));
+
+*/
