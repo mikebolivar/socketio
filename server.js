@@ -10,10 +10,10 @@ var bodyParser = require('body-parser');
 
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : 'jajaja',
-  database : 'socketio'
+  host     : '23.229.192.135',
+  user     : 'alobarodemo',
+  password : 'alobarodemo_',
+  database : 'alobarodemo'
 });
 
 
