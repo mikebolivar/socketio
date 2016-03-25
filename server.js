@@ -2,7 +2,19 @@ var path = require('path');
 var fs = require('fs');
 var express = require('express');
 var bodyParser = require('body-parser');
-var mysqlModel = require('mysql-model');
+
+
+
+
+
+
+var mysql      = require('mysql');
+var connection = mysql.createConnection({
+  host     : 'localhost',
+  user     : 'root',
+  password : 'jajaja',
+  database : 'socketio'
+});
 
 
 
@@ -39,36 +51,52 @@ router.route('/products')
 
     // create a bear (accessed at POST http://localhost:8080/api/bears)
     .post(function(req, res) {
-        
-        var bear = new Product();      // create a new instance of the Bear model
-        bear.name = req.body.name;  // set the bears name (comes from the request)
 
-        // save the bear and check for errors
-        bear.save(function(err) {
-            if (err)
-                res.send(err);
+		connection.query('INSERT INTO products (name) VALUES ("'+ req.body.name+'")', function(err, rows, fields) {
+		  if (err) throw err;
 
-            res.json({ message: 'Bear created!' });
-        });
+            res.json({ message: 'Product created!' });
+		});
+
+    	
         
     })    
     // get all the bears (accessed at GET http://localhost:8080/api/bears)
     .get(function(req, res) {
-    	var MyAppModel = mysqlModel.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : 'jajaja',
-  database : 'socketio',
-});
- 
-var Product = MyAppModel.extend({
-	tableName: "products",
-});
 
-        Product.query("Select * from products", function(err, row){
-            res.json({ message: 'JOJOJO created!' });
-        });
+		connection.query('SELECT * FROM products', function(err, rows, fields) {
+		  if (err) throw err;
+
+            res.json(rows);
+		});
+
     });
+
+
+router.route('/comments')
+
+    // create a bear (accessed at POST http://localhost:8080/api/bears)
+    .post(function(req, res) {
+
+		connection.query('INSERT INTO comments (author,text) VALUES ("'+ req.body.author+'","'+ req.body.text+'")', function(err, rows, fields) {
+		  if (err) throw err;
+
+            res.json({ message: 'Comment created!' });
+		});
+
+    	
+        
+    })    
+    // get all the bears (accessed at GET http://localhost:8080/api/bears)
+    .get(function(req, res) {
+
+		connection.query('SELECT * FROM comments', function(err, rows, fields) {
+		  if (err) throw err;
+
+            res.json(rows);
+		});
+
+    });    
 
 
 // REGISTER OUR ROUTES -------------------------------
@@ -82,15 +110,21 @@ var port = process.env.PORT || 5000;        // set our port
 var server = app.listen(port);
 console.log('Server listening on port '+ port);
 
+
+
+
 // Socket.IO part
 var io = require('socket.io')(server);
 
 var sendComments = function (socket) {
-	fs.readFile(__dirname + '/_comments.json', 'utf8', function(err, comments) {
-		comments = JSON.parse(comments);
+
+	connection.query('SELECT * FROM comments', function(err, comments, fields) {
+	  	if (err) throw err;
 		socket.emit('comments', comments);
 	});
+
 };
+
 
 io.on('connection', function (socket) {
 
@@ -101,13 +135,38 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('newComment', function (comment, callback) {
-		fs.readFile('_comments.json', 'utf8', function(err, comments) {
-			comments = JSON.parse(comments);
-			comments.push(comment);
-			fs.writeFile(__dirname +'/_comments.json', JSON.stringify(comments, null, 4), function (err) {
+
+		connection.query('INSERT INTO comments (author,text) VALUES ("'+ comment.author +'","'+ comment.text+'")', function(err, rows, fields) {
+			if (err) throw err;
+		 	console.log("comment created");
+			connection.query('SELECT * FROM comments', function(err, comments, fields) {
+				if (err) throw err;
 				io.emit('comments', comments);
 				callback(err);
 			});
+
+		});
+
+	});
+
+	socket.on('fetchProducts', function () {
+		connection.query('SELECT * FROM products', function(err, products, fields) {
+			  	if (err) throw err;
+				socket.emit('products', products);
+		});
+	});
+
+	socket.on('newProduct', function (product, callback) {
+
+		connection.query('INSERT INTO products (name,description,photo) VALUES ("'+ product.name +'","'+ product.description +'","'+ product.photo+'")', function(err, rows, fields) {
+			if (err) throw err;
+		 	console.log("Product created");
+			connection.query('SELECT * FROM products', function(err, products, fields) {
+				if (err) throw err;
+				io.emit('products', products);
+				callback(err);
+			});
+
 		});
 
 	});

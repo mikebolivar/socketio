@@ -86,3 +86,100 @@ React.render(
 	<CommentBox/>,
 	document.getElementById('content')
 );
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var ProductBox = React.createClass({
+	getInitialState: function () {
+		return {
+			products: null
+		};
+	},
+	componentDidMount: function () {
+		var that = this;
+		this.socket = io();
+		this.socket.on('products', function (products) {
+			that.setState({ products: products });
+		});
+		this.socket.emit('fetchProducts');
+	},
+	submitProduct: function (product, callback) {
+		this.socket.emit('newProduct', product, function (err) {
+			if (err)
+				return console.error('New product error:', err);
+			callback();
+		});
+	},
+	render: function() {
+		return (
+			<div className="commentBox">
+				<h3>Products:</h3>
+				<ProductList products={this.state.products}/>
+				<ProductForm submitProduct={this.submitProduct}/>
+			</div>
+		);
+	}
+});
+var ProductList = React.createClass({
+	render: function () {
+		var Products = (<div>Loading products...</div>);
+		if (this.props.products) {
+			Products = this.props.products.map(function (product) {
+				return (<Product product={product} />);
+			});
+		}
+		return (
+			<div className="commentList">
+				{Products}
+			</div>
+		);
+	}
+});
+var Product = React.createClass({
+	render: function () {
+		return (
+			<div className="comment">
+				<img src={this.props.product.photo} width="100px" />
+				<span className="author">{this.props.product.name}</span><br/>
+				<div className="body">{this.props.product.description}</div>
+			</div>
+		);
+	}
+});
+var ProductForm = React.createClass({
+	handleSubmit: function (e) {
+		e.preventDefault();
+		var that = this;
+		var name = this.refs.name.getDOMNode().value;
+		var photo = this.refs.photo.getDOMNode().value;
+		var description = this.refs.description.getDOMNode().value;
+		var product = { name: name, description: description, photo: photo };
+		var submitButton = this.refs.submitButton.getDOMNode();
+		submitButton.innerHTML = 'Posting product...';
+		submitButton.setAttribute('disabled', 'disabled');
+		this.props.submitProduct(product, function (err) {
+			that.refs.name.getDOMNode().value = '';
+			that.refs.description.getDOMNode().value = '';
+			that.refs.photo.getDOMNode().value = '';
+			submitButton.innerHTML = 'Post product';
+			submitButton.removeAttribute('disabled');
+		});
+	},
+	render: function () {
+		return (
+			<form className="commentForm" onSubmit={this.handleSubmit}>
+				<input type="text" name="name" ref="name" placeholder="Name" required /><br/>
+				<input type="text" name="photo" ref="photo" placeholder="Photo URL" required /><br/>
+				<textarea name="text" ref="description" placeholder="Description" required></textarea><br/>
+				<button type="submit" ref="submitButton">Post product</button>
+			</form>
+		);
+	}
+});
+
+React.render(
+	<ProductBox/>,
+	document.getElementById('content2')
+);
