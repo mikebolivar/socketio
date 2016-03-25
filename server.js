@@ -10,20 +10,20 @@ var bodyParser = require('body-parser');
 
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
-  host     : '223.229.192.135',
-  user     : 'alobarodemo',
-  password : 'alobarodemo',
-  database : 'alobarodemo'
+  host     : 'www.asore.net',
+  user     : 'wwwasore_socket',
+  password : 'socketio1',
+  database : 'wwwasore_socketio'
 });
 
-
+/*
 var connection = mysql.createConnection({
   host     : 'localhost',
   user     : 'root',
   password : 'jajaja',
   database : 'socketio'
 });
-
+*/
 
 // Server part
 var app = express();
