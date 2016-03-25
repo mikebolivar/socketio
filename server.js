@@ -55,22 +55,17 @@ router.route('/products')
     // create a bear (accessed at POST http://localhost:8080/api/bears)
     .post(function(req, res) {
 
-		connection.query('INSERT INTO products (name) VALUES ("'+ req.body.name+'")', function(err, rows, fields) {
-		  if (err) throw err;
-
-            res.json({ message: 'Product created!' });
-
             connection.query('INSERT INTO products (name,description,photo) VALUES ("'+ req.body.name +'","'+ req.body.description +'","'+ req.body.photo+'")', function(err, rows, fields) {
 				if (err) throw err;
 			 	console.log("Product created");
 				
 				connection.query('SELECT * FROM products', function(err, products, fields) {
 					if (err) throw err;
+					res.json({ message: 'Product created!' });
 					io.emit('products', products);
 				});
 
 			});
-		});
 
     	
         
@@ -144,16 +139,23 @@ router.route('/webhook')
 
     	console.log(s);
         
+        //REGISTER WEBHOOK
         connection.query('INSERT INTO webhooks SET ?',{params: s}, function(err, rows, fields) {
 		  if (err) throw err;
-
-            res.json(rows);
+		    res.json(rows);
 		});
 
-		connection.query('SELECT * FROM products', function(err, products, fields) {
-					if (err) throw err;
-					io.emit('products', products);
-				});
+        //SAVE THE NEW PRODUCT
+        connection.query('INSERT INTO products (name,description,photo) VALUES ("'+ req.body.name +'","'+ req.body.description +'","'+ req.body.photo+'")', function(err, rows, fields) {
+			if (err) throw err;
+		 	console.log("Product created in webhook");
+			
+			connection.query('SELECT * FROM products', function(err, products, fields) {
+				if (err) throw err;
+				io.emit('products', products);
+			});
+
+		});
 
     });            
 
