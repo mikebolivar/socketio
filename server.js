@@ -139,9 +139,12 @@ router.route('/webhook')
 
     // get the bear with that id (accessed at GET http://localhost:8080/api/bears/:bear_id)
     .post(function(req, res) {
+
+    	s = JSON.stringify(req.body, null, 2);
+
+    	console.log(s);
         
-        console.log(req.params)
-        connection.query('INSERT INTO webhooks (params) VALUES ("'+ JSON.stringify(req.params) +'")', function(err, rows, fields) {
+        connection.query('INSERT INTO webhooks SET ?',{params: s}, function(err, rows, fields) {
 		  if (err) throw err;
 
             res.json(rows);
