@@ -96,7 +96,7 @@ var CommentForm = React.createClass({
 });
 
 /*React.render(
-	<CommentBox url="http://localhost:5000/api/comments" pollInterval="2000"/>,
+	<CommentBox url="http://stark-shore-49013.herokuapp.com/api/comments" pollInterval="2000"/>,
 	document.getElementById('content')
 );
 */
