@@ -18,6 +18,19 @@ var connection = mysql.createConnection({
 
 
 
+const Shopify = require('shopify-api-node');
+
+const shopify = new Shopify("alobaro", "7e8905ddf301133f68d73103def268ee", "fad748a80dd2e3b51e536a81fbc1bd16");
+
+shopify.product.list({ limit: 5 })
+  .then( 
+  	products => {
+
+  		console.log("Shopify products",products)
+  	}
+  )
+  .catch( err => console.error(err));
+
 
 
 
@@ -56,6 +69,17 @@ router.route('/products')
 		  if (err) throw err;
 
             res.json({ message: 'Product created!' });
+
+            connection.query('INSERT INTO products (name,description,photo) VALUES ("'+ req.body.name +'","'+ req.body.description +'","'+ req.body.photo+'")', function(err, rows, fields) {
+				if (err) throw err;
+			 	console.log("Product created");
+				
+				connection.query('SELECT * FROM products', function(err, products, fields) {
+					if (err) throw err;
+					io.emit('products', products);
+				});
+
+			});
 		});
 
     	
