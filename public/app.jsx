@@ -17,11 +17,11 @@ var CommentBox = React.createClass({
 	      }.bind(this)
 	    });
   	},
-  	componentDidMount2: function() {
+  	componentDidMount: function() {
     	this.loadCommentsFromServer();
     	setInterval(this.loadCommentsFromServer, this.props.pollInterval);
   	},
-  	componentDidMount: function() {
+  	componentDidMount2: function() {
   		var that = this;
 		this.socket = io();
 		this.socket.on('comments', function (comments) {
@@ -167,7 +167,7 @@ var Product = React.createClass({
 				<span className="author">{this.props.product.name}</span><br/>
 				<div className="body">Price: {this.props.product.price} </div>
 				<div dangerouslySetInnerHTML={{__html: this.props.product.description}} />
-				<CommentBox product={this.props.product.id} />
+				<CommentBox url={ "http://localhost:5000/api/product/" +  this.props.product.id + "/comments/"} product = {this.props.product.id} pollInterval="2000"/>
 			</div>
 		);
 	}
