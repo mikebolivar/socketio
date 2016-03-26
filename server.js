@@ -308,7 +308,7 @@ function update_products(){
   	} 
   	
   )
-  .catch( err => console.error(err));
+  .catch( err = function(err){ console.error(err)} ) ;
 
 
 }
