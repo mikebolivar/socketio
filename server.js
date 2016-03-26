@@ -23,7 +23,7 @@ var connection = mysql.createConnection({
   host     : 'localhost',
   user     : 'root',
   password : 'jajaja',
-  database : 'socketio'
+  database : 'socketito'
 });
 
 
