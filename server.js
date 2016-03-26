@@ -250,7 +250,7 @@ Shopify = require('shopify-api-node');
 shopify = new Shopify("alobaro", "7e8905ddf301133f68d73103def268ee", "fad748a80dd2e3b51e536a81fbc1bd16");
 
 function update_products(){
-   shopify.product.list({limit: 5})
+   shopify.product.list({limit: 25})
   .then( products = function(products) {
   		products.forEach(function(entry) {
     		name = entry.title;
