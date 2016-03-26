@@ -22,7 +22,7 @@ var connection = mysql.createConnection({
 var connection = mysql.createConnection({
   host     : 'localhost',
   user     : 'root',
-  password : 'jajaja',
+  password : '',
   database : 'socketito'
 });
 
