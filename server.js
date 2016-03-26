@@ -244,7 +244,20 @@ io.on('connection', function (socket) {
 
 
 
+var shopifyAPI = require('shopify-node-api');
+ 
+ 
+var Shopify = new shopifyAPI({
+  shop: 'alobaro', // MYSHOP.myshopify.com 
+  shopify_api_key: '7e8905ddf301133f68d73103def268ee', // Your API key 
+  access_token: 'fad748a80dd2e3b51e536a81fbc1bd16' // Your API password 
+});
 
+Shopify.get('/admin/products.json', function(err, data, headers){
+  console.log(data); // Data contains product json information 
+  console.log(headers); // Headers returned from request 
+});
+/*
 Shopify = require('shopify-api-node');
 
 shopify = new Shopify("alobaro", "7e8905ddf301133f68d73103def268ee", "fad748a80dd2e3b51e536a81fbc1bd16");
@@ -312,6 +325,7 @@ function update_products(){
 
 
 }
+
 
 
 
