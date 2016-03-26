@@ -17,6 +17,56 @@ var CommentBox = React.createClass({
 	      }.bind(this)
 	    });
   	},
+  	componentDidMount2: function() {
+    	this.loadCommentsFromServer();
+    	setInterval(this.loadCommentsFromServer, this.props.pollInterval);
+  	},
+  	componentDidMount: function() {
+  		var that = this;
+		this.socket = io();
+		this.socket.on('comments', function (comments) {
+			that.setState({ comments: comments });
+		});
+		this.socket.emit('fetchComments',{product_id:this.props.product});
+	},
+	submitComment: function (comment, callback) {
+		var that = this;
+		this.socket = io();
+		this.socket.emit('newComment', comment, function (err) {
+			if (err)
+				return console.error('New comment error:', err);
+			callback();
+		});
+	},
+	render: function() {
+		return (
+			<div className="commentBox">
+				<h3>Comments:</h3>
+				<CommentList comments={this.state.comments}/>
+				<CommentForm submitComment={this.submitComment} product={this.props.product}/>
+			</div>
+		);
+	}
+});
+var CommentBoxUpdate = React.createClass({
+	getInitialState: function () {
+		return {
+			comments: null
+		};
+	},
+	loadCommentsFromServer: function() {
+	    $.ajax({
+	      url: this.props.url,
+	      dataType: 'json',
+	      cache: false,
+	      success: function(data) {
+	        this.setState({comments: data});
+	      }.bind(this),
+	      error: function(xhr, status, err) {
+	        console.error(this.props.url, status, err.toString());
+	      }.bind(this)
+	    });
+  	},
   	componentDidMount: function() {
     	this.loadCommentsFromServer();
     	setInterval(this.loadCommentsFromServer, this.props.pollInterval);
@@ -139,7 +189,6 @@ var ProductBox = React.createClass({
 			<div className="commentBox">
 				<h3>Products:</h3>
 				<ProductList products={this.state.products}/>
-				<ProductForm submitProduct={this.submitProduct}/>
 			</div>
 		);
 	}
@@ -167,7 +216,7 @@ var Product = React.createClass({
 				<span className="author">{this.props.product.name}</span><br/>
 				<div className="body">Price: {this.props.product.price} </div>
 				<div dangerouslySetInnerHTML={{__html: this.props.product.description}} />
-				<CommentBox url={ "http://localhost:5000/api/product/" +  this.props.product.id + "/comments/"} product = {this.props.product.id} pollInterval="2000"/>
+				<CommentBoxUpdate url={ "http://localhost:5000/api/product/" +  this.props.product.id + "/comments/"} product = {this.props.product.id} pollInterval="3000"/>
 			</div>
 		);
 	}

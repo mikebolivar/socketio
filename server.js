@@ -43,7 +43,7 @@ var router = express.Router();              // get an instance of the express Ro
 // middleware to use for all requests
 router.use(function(req, res, next) {
     // do logging
-    console.log('Something is happening.');
+    //console.log('Something is happening.');
     next(); // make sure we go to the next routes and don't stop here
 });
 
@@ -178,6 +178,16 @@ var sendComments = function (socket,data) {
 };
 
 
+var sendProducts = function (socket) {
+
+	connection.query('SELECT * FROM products ', function(err, products, fields) {
+	  	if (err) throw err;
+		socket.emit('products', products);
+	});
+
+};
+
+
 io.on('connection', function (socket) {
 
 	console.log('New client connected! Id: ' + socket.id);
@@ -267,22 +277,25 @@ function update_products(){
     		connection.query('SELECT count(*) as count, ? as name, ? as description, ? as shopify_id, ? as photo,? as variants, ? as price, ? as shopify_updated FROM products WHERE shopify_id = "'+shopify_id+'"',
     			[name,description,shopify_id,photo,variants,price,shopify_updated], function(err, products, fields) {
 			  	if (err) throw err;
-			  	console.log(products[0].shopify_id);
 				if (products[0].count > 0){
+					console.log("updating",products[0].shopify_id);
 					product_ = {name: products[0].name , description: products[0].description, photo: products[0].photo, shopify_id: products[0].shopify_id, variants: products[0].variants, price: products[0].price, shopify_updated: products[0].shopify_updated };
 					connection.query('UPDATE products SET ? WHERE shopify_id = ?', 
 						[product_, products[0].shopify_id], 
 						function(err, rows, fields) {
 						if (err) throw err;
 					 	console.log("Product updated ",rows);
+					 	sendProducts(io);
 					});
 				}else{
+					console.log("creating",products[0].shopify_id);
 					product_ = {name: products[0].name , description: products[0].description, photo: products[0].photo, shopify_id: products[0].shopify_id, variants: products[0].variants, price: products[0].price, shopify_updated: products[0].shopify_updated };
 					connection.query('INSERT INTO products SET ? ', 
 						product_, 
 						function(err, rows, fields) {
 						if (err) throw err;
 					 	console.log("Product created ",rows);
+					 	sendProducts(io);
 					});
 				}
 
