@@ -253,10 +253,64 @@ var Shopify = new shopifyAPI({
   access_token: 'fad748a80dd2e3b51e536a81fbc1bd16' // Your API password 
 });
 
-Shopify.get('/admin/products.json', function(err, data, headers){
-  console.log(data); // Data contains product json information 
-  console.log(headers); // Headers returned from request 
-});
+function update_products(){
+
+	Shopify.get('/admin/products.json', function(err, data, headers){
+		console.log(data.products.length); // Data contains product json information 
+	  	//console.log(headers); // Headers returned from request 
+
+	  	data.products.forEach(function(entry) {
+			name = entry.title;
+			description = "";
+			if ( entry.body_html != undefined )
+				description = entry.body_html;
+			shopify_id = entry.id ;
+			photo = "";
+			if (entry.image != undefined)
+				photo = entry.image.src;
+			variants = entry.variants.length;
+			price=0;
+			if (variants > 0)
+				price = entry.variants[0].price
+			shopify_updated = entry.updated_at;
+
+			//product = {name: name , description: description, photo: photo, shopify_id: shopify_id, variants: variants, price: price, shopify_updated: shopify_updated };
+
+			//console.log("PROD;:", product);
+
+			//Search
+
+			connection.query('SELECT count(*) as count, ? as name, ? as description, ? as shopify_id, ? as photo,? as variants, ? as price, ? as shopify_updated FROM products WHERE shopify_id = "'+shopify_id+'"',
+				[name,description,shopify_id,photo,variants,price,shopify_updated], function(err, products, fields) {
+			  	if (err) throw err;
+				if (products[0].count > 0){
+					console.log("updating",products[0].shopify_id);
+					product_ = {name: products[0].name , description: products[0].description, photo: products[0].photo, shopify_id: products[0].shopify_id, variants: products[0].variants, price: products[0].price, shopify_updated: products[0].shopify_updated };
+					connection.query('UPDATE products SET ? WHERE shopify_id = ?', 
+						[product_, products[0].shopify_id], 
+						function(err, rows, fields) {
+						if (err) throw err;
+					 	console.log("Product updated ",rows);
+					 	sendProducts(io);
+					});
+				}else{
+					console.log("creating",products[0].shopify_id);
+					product_ = {name: products[0].name , description: products[0].description, photo: products[0].photo, shopify_id: products[0].shopify_id, variants: products[0].variants, price: products[0].price, shopify_updated: products[0].shopify_updated };
+					connection.query('INSERT INTO products SET ? ', 
+						product_, 
+						function(err, rows, fields) {
+						if (err) throw err;
+					 	console.log("Product created ",rows);
+					 	sendProducts(io);
+					});
+				}
+			});
+		});  		
+	  	 
+	});
+}
+
+update_products();
 /*
 Shopify = require('shopify-api-node');
 
