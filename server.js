@@ -313,7 +313,7 @@ function update_products(){
 
 }
 
-update_products();
+
 
 /*
 shopify.product.list({ limit: 5 })
