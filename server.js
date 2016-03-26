@@ -22,7 +22,7 @@ var connection = mysql.createConnection({
 var connection = mysql.createConnection({
   host     : 'localhost',
   user     : 'root',
-  password : '',
+  password : 'jajaja',
   database : 'socketito'
 });
 
@@ -251,8 +251,7 @@ const shopify = new Shopify("alobaro", "7e8905ddf301133f68d73103def268ee", "fad7
 
 function update_products(){
    shopify.product.list({limit: 5})
-  .then( 
-  	products => {
+  .then( products = function(products) {
   		products.forEach(function(entry) {
     		name = entry.title;
     		description = "";
