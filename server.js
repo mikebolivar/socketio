@@ -168,9 +168,9 @@ console.log('Server listening on port '+ port);
 // Socket.IO part
 var io = require('socket.io')(server);
 
-var sendComments = function (socket) {
+var sendComments = function (socket,data) {
 
-	connection.query('SELECT * FROM comments', function(err, comments, fields) {
+	connection.query('SELECT * FROM comments ',data.product_id, function(err, comments, fields) {
 	  	if (err) throw err;
 		socket.emit('comments', comments);
 	});
@@ -182,8 +182,9 @@ io.on('connection', function (socket) {
 
 	console.log('New client connected! Id: ' + socket.id);
   
-  	socket.on('fetchComments', function () {
-		sendComments(socket);
+  	socket.on('fetchComments', function (data) {
+  		console.log("fetch comment", data);
+		sendComments(socket,data);
 	});
 
 	socket.on('newComment', function (comment, callback) {

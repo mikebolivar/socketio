@@ -27,7 +27,7 @@ var CommentBox = React.createClass({
 		this.socket.on('comments', function (comments) {
 			that.setState({ comments: comments });
 		});
-		this.socket.emit('fetchComments');
+		this.socket.emit('fetchComments',{product_id:this.props.product});
 	},
 	submitComment: function (comment, callback) {
 		var that = this;
@@ -166,7 +166,8 @@ var Product = React.createClass({
 				<img src={this.props.product.photo} width="100px" />
 				<span className="author">{this.props.product.name}</span><br/>
 				<div className="body">Price: {this.props.product.price} </div>
-				<div className="body">{{__html: this.props.product.description}}</div>
+				<div dangerouslySetInnerHTML={{__html: this.props.product.description}} />
+				<CommentBox product={this.props.product.id} />
 			</div>
 		);
 	}
