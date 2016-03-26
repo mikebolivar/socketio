@@ -41,7 +41,7 @@ var router = express.Router();              // get an instance of the express Ro
 // middleware to use for all requests
 router.use(function(req, res, next) {
     // do logging
-    console.log('Something is happening.');
+    //console.log('Something is happening.');
     next(); // make sure we go to the next routes and don't stop here
 });
 
@@ -55,7 +55,7 @@ router.route('/products')
     // create a bear (accessed at POST http://localhost:8080/api/bears)
     .post(function(req, res) {
 
-            connection.query('INSERT INTO products (name,description,photo) VALUES ("'+ req.body.name +'","'+ req.body.description +'","'+ req.body.photo+'")', function(err, rows, fields) {
+            connection.query('INSERT INTO products SET ? ', {name: req.body.name , description: req.body.description , photo: req.body.photo}, function(err, rows, fields) {
 				if (err) throw err;
 			 	console.log("Product created");
 				
@@ -86,11 +86,9 @@ router.route('/comments')
 
     // create a bear (accessed at POST http://localhost:8080/api/bears)
     .post(function(req, res) {
-    	query = 'INSERT INTO comments (author,text, product_id) VALUES ("'+ req.body.author+'","'+ req.body.text+'","'+ req.body.product_id+'")';
 
-    	console.log(query);
 
-		connection.query( query, function(err, rows, fields) {
+		connection.query( 'INSERT INTO comments SET ?', { author: req.body.author, text: req.body.text, product_id: req.body.product_id }, function(err, rows, fields) {
 		  if (err) throw err;
 
             res.json({ message: 'Comment created!' });
@@ -145,17 +143,8 @@ router.route('/webhook')
 		    res.json(rows);
 		});
 
-        //SAVE THE NEW PRODUCT
-        connection.query('INSERT INTO products (name,description,photo) VALUES ("'+ req.body.name +'","'+ req.body.description +'","'+ req.body.photo+'")', function(err, rows, fields) {
-			if (err) throw err;
-		 	console.log("Product created in webhook");
-			
-			connection.query('SELECT * FROM products', function(err, products, fields) {
-				if (err) throw err;
-				io.emit('products', products);
-			});
-
-		});
+        //UPDATE PRODUCTS
+        update_products();
 
     });            
 
@@ -197,7 +186,7 @@ io.on('connection', function (socket) {
 
 	socket.on('newComment', function (comment, callback) {
 
-		connection.query('INSERT INTO comments (author,text, product_id) VALUES ("'+ comment.author +'","'+ comment.text+'", "'+ comment.product_id +'")', function(err, rows, fields) {
+		connection.query('INSERT INTO comments SET ?', {author: comment.author , text: comment.text, product_id: comment.product_id }, function(err, rows, fields) {
 			if (err) throw err;
 		 	console.log("comment created");
 			connection.query('SELECT * FROM comments', function(err, comments, fields) {
@@ -219,7 +208,7 @@ io.on('connection', function (socket) {
 
 	socket.on('newProduct', function (product, callback) {
 
-		connection.query('INSERT INTO products (name,description,photo) VALUES ("'+ product.name +'","'+ product.description +'","'+ product.photo+'")', function(err, rows, fields) {
+		connection.query('INSERT INTO products SET ? ', {name: product.name , description: product.description, photo: product.photo }, function(err, rows, fields) {
 			if (err) throw err;
 		 	console.log("Product created");
 			connection.query('SELECT * FROM products', function(err, products, fields) {
@@ -246,6 +235,70 @@ io.on('connection', function (socket) {
 const Shopify = require('shopify-api-node');
 
 const shopify = new Shopify("alobaro", "7e8905ddf301133f68d73103def268ee", "fad748a80dd2e3b51e536a81fbc1bd16");
+
+function update_products(){
+   shopify.product.list({limit: 5})
+  .then( 
+  	products => {
+  		products.forEach(function(entry) {
+    		name = entry.title;
+    		description = "";
+    		if ( entry.body_html != undefined )
+				description = entry.body_html;
+    		shopify_id = entry.id ;
+    		photo = "";
+    		if (entry.image != undefined)
+    			photo = entry.image.src;
+    		variants = entry.variants.length;
+    		price=0;
+    		if (variants > 0)
+    			price = entry.variants[0].price
+    		shopify_updated = entry.updated_at;
+
+    		//product = {name: name , description: description, photo: photo, shopify_id: shopify_id, variants: variants, price: price, shopify_updated: shopify_updated };
+
+    		//console.log("PROD;:", product);
+
+    		//Search
+
+    		connection.query('SELECT count(*) as count, ? as name, ? as description, ? as shopify_id, ? as photo,? as variants, ? as price, ? as shopify_updated FROM products WHERE shopify_id = "'+shopify_id+'"',
+    			[name,description,shopify_id,photo,variants,price,shopify_updated], function(err, products, fields) {
+			  	if (err) throw err;
+			  	console.log(products[0].shopify_id);
+				if (products[0].count > 0){
+					product_ = {name: products[0].name , description: products[0].description, photo: products[0].photo, shopify_id: products[0].shopify_id, variants: products[0].variants, price: products[0].price, shopify_updated: products[0].shopify_updated };
+					connection.query('UPDATE products SET ? WHERE shopify_id = ?', 
+						[product_, products[0].shopify_id], 
+						function(err, rows, fields) {
+						if (err) throw err;
+					 	console.log("Product updated ",rows);
+					});
+				}else{
+					product_ = {name: products[0].name , description: products[0].description, photo: products[0].photo, shopify_id: products[0].shopify_id, variants: products[0].variants, price: products[0].price, shopify_updated: products[0].shopify_updated };
+					connection.query('INSERT INTO products SET ? ', 
+						product_, 
+						function(err, rows, fields) {
+						if (err) throw err;
+					 	console.log("Product created ",rows);
+					});
+				}
+
+			});
+
+
+
+    		
+		});
+  		//console.log("Shopify products",products[0]);
+  	} 
+  	
+  )
+  .catch( err => console.error(err));
+
+
+}
+
+update_products();
 
 /*
 shopify.product.list({ limit: 5 })

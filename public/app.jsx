@@ -96,7 +96,7 @@ var CommentForm = React.createClass({
 });
 
 /*React.render(
-	<CommentBox url="http://stark-shore-49013.herokuapp.com/api/comments" pollInterval="2000"/>,
+	<CommentBox url="http://localhost:5000/api/comments" pollInterval="2000"/>,
 	document.getElementById('content')
 );
 */
@@ -151,14 +151,13 @@ var ProductList = React.createClass({
 	}
 });
 var Product = React.createClass({
-
 	render: function () {
 		return (
 			<div className="comment">
 				<img src={this.props.product.photo} width="100px" />
 				<span className="author">{this.props.product.name}</span><br/>
-				<div className="body">{this.props.product.description}</div>
-				<CommentBox url={ "http://localhost:5000/api/product/" +  this.props.product.id + "/comments/"} product = {this.props.product.id} pollInterval="2000"/>
+				<div className="body">Price: {this.props.product.price} </div>
+				<div className="body">{{__html: this.props.product.description}}</div>
 			</div>
 		);
 	}
