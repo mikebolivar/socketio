@@ -17,10 +17,18 @@ var CommentBox = React.createClass({
 	      }.bind(this)
 	    });
   	},
-  	componentDidMount: function() {
+  	componentDidMount2: function() {
     	this.loadCommentsFromServer();
     	setInterval(this.loadCommentsFromServer, this.props.pollInterval);
   	},
+  	componentDidMount: function() {
+  		var that = this;
+		this.socket = io();
+		this.socket.on('comments', function (comments) {
+			that.setState({ comments: comments });
+		});
+		this.socket.emit('fetchComments');
+	},
 	submitComment: function (comment, callback) {
 		var that = this;
 		this.socket = io();
@@ -95,8 +103,9 @@ var CommentForm = React.createClass({
 	}
 });
 
-/*React.render(
-	<CommentBox url="http://localhost:5000/api/comments" pollInterval="2000"/>,
+/*
+React.render(
+	<CommentBox />,
 	document.getElementById('content')
 );
 */

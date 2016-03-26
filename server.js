@@ -9,6 +9,8 @@ var bodyParser = require('body-parser');
 
 
 var mysql      = require('mysql');
+
+/*
 var connection = mysql.createConnection({
   host     : 'www.asore.net',
   user     : 'wwwasore_socket',
@@ -16,14 +18,14 @@ var connection = mysql.createConnection({
   database : 'wwwasore_socketio'
 });
 
-/*
+*/
 var connection = mysql.createConnection({
   host     : 'localhost',
   user     : 'root',
   password : 'jajaja',
   database : 'socketio'
 });
-*/
+
 
 // Server part
 var app = express();
@@ -41,7 +43,7 @@ var router = express.Router();              // get an instance of the express Ro
 // middleware to use for all requests
 router.use(function(req, res, next) {
     // do logging
-    //console.log('Something is happening.');
+    console.log('Something is happening.');
     next(); // make sure we go to the next routes and don't stop here
 });
 
