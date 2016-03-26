@@ -216,7 +216,7 @@ var Product = React.createClass({
 				<span className="author">{this.props.product.name}</span><br/>
 				<div className="body">Price: {this.props.product.price} </div>
 				<div dangerouslySetInnerHTML={{__html: this.props.product.description}} />
-				<CommentBoxUpdate url={ "http://ec2-54-200-144-215.us-west-2.compute.amazonaws.com/api/product/" +  this.props.product.id + "/comments/"} product = {this.props.product.id} pollInterval="3000"/>
+				<CommentBoxUpdate url={ "http://ec2-54-200-144-215.us-west-2.compute.amazonaws.com:5000/api/product/" +  this.props.product.id + "/comments/"} product = {this.props.product.id} pollInterval="3000"/>
 			</div>
 		);
 	}
