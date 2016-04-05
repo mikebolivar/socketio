@@ -451,7 +451,7 @@ function update_products(){
 		            row = results[0]
 		            console.log('comments', row);
 		            values = [row.name,row.description,row.shopify_id,row.photo,row.variants,row.price,row.shopify_updated];
-		            if (row.count == 1){
+		            if (results.length == 1){
 		            	client.query("INSERT INTO products (name,description,shopify_id,photo,variants,price,shopify_updated) VALUES ($1,$2,$3,$4,$5,$6,$7)",values);
 		            	console.log("Nuevo Product", values);
 		            }else{
