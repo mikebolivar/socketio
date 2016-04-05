@@ -216,7 +216,7 @@ var Product = React.createClass({
 				<span className="author">#{this.props.product.shopify_id}. {this.props.product.name}</span><br/>
 				<div className="body">Price: {this.props.product.price} </div>
 				<div dangerouslySetInnerHTML={{__html: this.props.product.description}} />
-				<CommentBoxUpdate url={ "https://stark-shore-49013.herokuapp.com:5000/api/product/" +  this.props.product.id + "/comments/"} product = {this.props.product.id} pollInterval="3000"/>
+				<CommentBoxUpdate url={ "https://stark-shore-49013.herokuapp.com/api/product/" +  this.props.product.id + "/comments/"} product = {this.props.product.id} pollInterval="3000"/>
 			</div>
 		);
 	}
