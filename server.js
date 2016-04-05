@@ -9,7 +9,6 @@ var bodyParser = require('body-parser');
 
 
 var mysql      = require('mysql');
-
 /*
 var connection = mysql.createConnection({
   host     : 'www.asore.net',
@@ -18,13 +17,18 @@ var connection = mysql.createConnection({
   database : 'wwwasore_socketio'
 });
 
-*/
+
 var connection = mysql.createConnection({
   host     : 'localhost',
   user     : 'root',
   password : '',
   database : 'socketio'
 });
+*/
+
+var pg = require('pg');
+var conString = "postgres://socketio:jajaja@localhost/socketio";
+var client = new pg.Client(conString);
 
 
 // Server part
@@ -278,8 +282,30 @@ function update_products(){
 
 			//console.log("PROD;:", product);
 
-			//Search
 
+			pg.connect(conString, function(err, client, done) {
+
+				if(err) {
+					return console.error('error fetching client from pool', err);
+				}
+				
+				client.query("INSERT INTO products  (name,description,shopify_id,photo,variants,price,shopify_updated) VALUES ($1,$2,$3,$4,$5,$6,$7)", [name,description,shopify_id,photo,variants,price,shopify_updated], function(err, result) {
+
+					//call `done()` to release the client back to the pool
+					done();
+
+					if(err) {
+						return console.error('error running query', err);
+					}
+
+					console.log(result.rows[0]);
+					//output: 1
+				});
+
+			});
+
+			/*
+			//Search
 			connection.query('SELECT count(*) as count, ? as name, ? as description, ? as shopify_id, ? as photo,? as variants, ? as price, ? as shopify_updated FROM products WHERE shopify_id = "'+shopify_id+'"',
 				[name,description,shopify_id,photo,variants,price,shopify_updated], function(err, products, fields) {
 			  	if (err) throw err;
@@ -305,12 +331,13 @@ function update_products(){
 					});
 				}
 			});
+*/
 		});  		
 	  	 
 	});
 }
 
-update_products();
+//update_products();
 /*
 Shopify = require('shopify-api-node');
 
