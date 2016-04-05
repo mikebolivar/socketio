@@ -24,7 +24,8 @@ var connection = mysql.createConnection({
 */
 
 var pg = require('pg');
-var conString = "postgres://socketio:jajaja@localhost/socketio";
+//var conString = "postgres://socketio:jajaja@localhost/socketio";
+var conString = "postgres://jinjevogxnwaop:FWe7VgJi1rbLNvrOyilGuNOFjZ@ec2-23-21-157-223.compute-1.amazonaws.com:5432/dvltokk08hjbj";
 var client = new pg.Client(conString);
 
 
@@ -58,29 +59,34 @@ router.route('/products')
     // create a bear (accessed at POST http://localhost:8080/api/bears)
     .post(function(req, res) {
 
-            connection.query('INSERT INTO products SET ? ', {name: req.body.name , description: req.body.description , photo: req.body.photo}, function(err, rows, fields) {
+		/*
+        connection.query('INSERT INTO products SET ? ', {name: req.body.name , description: req.body.description , photo: req.body.photo}, function(err, rows, fields) {
+			if (err) throw err;
+		 	console.log("Product created");
+			
+			connection.query('SELECT * FROM products', function(err, products, fields) {
 				if (err) throw err;
-			 	console.log("Product created");
-				
-				connection.query('SELECT * FROM products', function(err, products, fields) {
-					if (err) throw err;
-					res.json({ message: 'Product created!' });
-					io.emit('products', products);
-				});
-
+				res.json({ message: 'Product created!' });
+				io.emit('products', products);
 			});
 
-    	
+		});*/
+
+		res.sendStatus(200);
         
     })    
     // get all the bears (accessed at GET http://localhost:8080/api/bears)
     .get(function(req, res) {
 
+    	/*
 		connection.query('SELECT * FROM products', function(err, rows, fields) {
 		  if (err) throw err;
 
             res.json(rows);
 		});
+		*/
+
+		res.sendStatus(200);
 
     });
 
@@ -90,24 +96,31 @@ router.route('/comments')
     // create a bear (accessed at POST http://localhost:8080/api/bears)
     .post(function(req, res) {
 
-
+    	/*
 		connection.query( 'INSERT INTO comments SET ?', { author: req.body.author, text: req.body.text, product_id: req.body.product_id }, function(err, rows, fields) {
 		  if (err) throw err;
 
             res.json({ message: 'Comment created!' });
 		});
+		*/
 
+		res.sendStatus(200);
     	
         
     })    
     // get all the bears (accessed at GET http://localhost:8080/api/bears)
     .get(function(req, res) {
 
+    	/*
 		connection.query('SELECT * FROM comments', function(err, rows, fields) {
 		  if (err) throw err;
 
             res.json(rows);
 		});
+
+		*/
+
+		res.sendStatus(200);
 
     });
 
@@ -164,6 +177,7 @@ router.route('/webhook')
     // get the bear with that id (accessed at GET http://localhost:8080/api/bears/:bear_id)
     .post(function(req, res) {
 
+    	/*
     	s = JSON.stringify(req.body, null, 2);
 
     	console.log(s);
@@ -176,7 +190,9 @@ router.route('/webhook')
 
         //UPDATE PRODUCTS
         update_products();
+		*/
 
+		res.sendStatus(200);
     });            
 
 
