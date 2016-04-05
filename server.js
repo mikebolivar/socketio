@@ -5,9 +5,6 @@ var bodyParser = require('body-parser');
 
 
 
-
-
-
 var mysql      = require('mysql');
 /*
 var connection = mysql.createConnection({
@@ -121,13 +118,41 @@ router.route('/product/:product_id/comments')
 
     // get the bear with that id (accessed at GET http://localhost:8080/api/bears/:bear_id)
     .get(function(req, res) {
+
+    	var results = [];
+
+	    // Get a Postgres client from the connection pool
+	    pg.connect(conString, function(err, client, done) {
+	        // Handle connection errors
+	        if(err) {
+	          done();
+	          console.log(err);
+	          return res.status(500).json({ success: false, data: err});
+	        }
+
+	        // SQL Query > Select Data
+	        var query = client.query('SELECT * FROM comments WHERE product_id = $1', [req.params.product_id]);
+
+	        // Stream results back one row at a time
+	        query.on('row', function(row) {
+	            results.push(row);
+	        });
+
+	        // After all data is returned, close connection and return results
+	        query.on('end', function() {
+	            done();
+	            return res.json(results);
+	        });
+
+	    });
         
+        /*
         connection.query('SELECT * FROM comments WHERE product_id = "'+ req.params.product_id +'"', function(err, rows, fields) {
 		  if (err) throw err;
 
             res.json(rows);
 		});
-
+		*/
     }) 
 
 
@@ -174,21 +199,79 @@ var io = require('socket.io')(server);
 
 var sendComments = function (socket,data) {
 
-	connection.query('SELECT * FROM comments ',data.product_id, function(err, comments, fields) {
+	var results = [];
+
+	// Get a Postgres client from the connection pool
+    pg.connect(conString, function(err, client, done) {
+        // Handle connection errors
+        if(err) {
+          done();
+          console.log(err);
+          return res.status(500).json({ success: false, data: err});
+        }
+
+        // SQL Query > Select Data
+        var query = client.query("SELECT * FROM comments ORDER BY id ASC;");
+
+        // Stream results back one row at a time
+        query.on('row', function(row) {
+            results.push(row);
+        });
+
+        // After all data is returned, close connection and return results
+        query.on('end', function() {
+            done();
+            console.log('comments', results);
+            socket.emit('comments', results);
+        });
+
+    });
+
+
+	/*connection.query('SELECT * FROM comments ',data.product_id, function(err, comments, fields) {
 	  	if (err) throw err;
 		socket.emit('comments', comments);
 	});
-
+	*/
 };
 
 
 var sendProducts = function (socket) {
 
+	var results = [];
+
+    // Get a Postgres client from the connection pool
+    pg.connect(conString, function(err, client, done) {
+        // Handle connection errors
+        if(err) {
+          done();
+          console.log(err);
+          return res.status(500).json({ success: false, data: err});
+        }
+
+        // SQL Query > Select Data
+        var query = client.query("SELECT * FROM products ORDER BY id ASC;");
+
+        // Stream results back one row at a time
+        query.on('row', function(row) {
+            results.push(row);
+        });
+
+        // After all data is returned, close connection and return results
+        query.on('end', function() {
+            done();
+            console.log('products', results);
+            socket.emit('products', results);
+        });
+
+    });
+
+    /*
 	connection.query('SELECT * FROM products ', function(err, products, fields) {
 	  	if (err) throw err;
 		socket.emit('products', products);
 	});
-
+	*/
 };
 
 
@@ -203,6 +286,50 @@ io.on('connection', function (socket) {
 
 	socket.on('newComment', function (comment, callback) {
 
+		var results = [];
+
+		// Get a Postgres client from the connection pool
+	    pg.connect(conString, function(err, client, done) {
+	        // Handle connection errors
+	        if(err) {
+	          done();
+	          console.log(err);
+	          return res.status(500).json({ success: false, data: err});
+	        }
+
+	        // SQL Query > Select Data
+	        var query = client.query("INSERT INTO comments (author,text, product_id) VALUES ($1,$2,$3)",[comment.author , comment.text, comment.product_id]);
+
+	        // Stream results back one row at a time
+	        query.on('row', function(row) {
+	            results.push(row);
+	        });
+
+	        // After all data is returned, close connection and return results
+	        query.on('end', function() {
+	            done();
+	            console.log('New Comment', results);
+	            callback(err);
+
+	            /*
+	            var results2 = [];
+	            var query2 = client.query('SELECT * FROM comments');
+
+	            // Stream results back one row at a time
+		        query2.on('row', function(row) {
+		            results2.push(row);
+		        });
+
+	            query2.on('end', function() {
+	            	io.emit('comments',results2);
+	            	callback(err);
+	            });
+	        	*/
+	        });
+
+	    });
+
+    	/*
 		connection.query('INSERT INTO comments SET ?', {author: comment.author , text: comment.text, product_id: comment.product_id }, function(err, rows, fields) {
 			if (err) throw err;
 		 	console.log("comment created");
@@ -212,15 +339,12 @@ io.on('connection', function (socket) {
 				callback(err);
 			});
 
-		});
+		});*/
 
 	});
 
 	socket.on('fetchProducts', function () {
-		connection.query('SELECT * FROM products', function(err, products, fields) {
-			  	if (err) throw err;
-				socket.emit('products', products);
-		});
+		sendProducts(socket);
 	});
 
 	socket.on('newProduct', function (product, callback) {
