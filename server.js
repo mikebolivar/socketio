@@ -246,7 +246,6 @@ var sendProducts = function (socket) {
         if(err) {
           done();
           console.log(err);
-          return res.status(500).json({ success: false, data: err});
         }
 
         // SQL Query > Select Data
@@ -294,7 +293,7 @@ io.on('connection', function (socket) {
 	        if(err) {
 	          done();
 	          console.log(err);
-	          return res.status(500).json({ success: false, data: err});
+	          callback(err);
 	        }
 
 	        // SQL Query > Select Data
@@ -308,7 +307,7 @@ io.on('connection', function (socket) {
 	        // After all data is returned, close connection and return results
 	        query.on('end', function() {
 	            done();
-	            console.log('New Comment', results);
+	            console.log('New Comment', comment);
 	            callback(err);
 
 	            /*
@@ -350,7 +349,9 @@ io.on('connection', function (socket) {
 	socket.on('newProduct', function (product, callback) {
 
 		connection.query('INSERT INTO products SET ? ', {name: product.name , description: product.description, photo: product.photo }, function(err, rows, fields) {
-			if (err) throw err;
+			if (err) 
+				callback(err);
+
 		 	console.log("Product created");
 			connection.query('SELECT * FROM products', function(err, products, fields) {
 				if (err) throw err;
@@ -387,47 +388,64 @@ function update_products(){
 		console.log(data.products.length); // Data contains product json information 
 	  	//console.log(headers); // Headers returned from request 
 
-	  	data.products.forEach(function(entry) {
-			name = entry.title;
-			description = "";
-			if ( entry.body_html != undefined )
-				description = entry.body_html;
-			shopify_id = entry.id ;
-			photo = "";
-			if (entry.image != undefined)
-				photo = entry.image.src;
-			variants = entry.variants.length;
-			price=0;
-			if (variants > 0)
-				price = entry.variants[0].price
-			shopify_updated = entry.updated_at;
 
-			//product = {name: name , description: description, photo: photo, shopify_id: shopify_id, variants: variants, price: price, shopify_updated: shopify_updated };
+	  	pg.connect(conString, function(err, client, done) {
+	        // Handle connection errors
+	        if(err) {
+	          done();
+	          console.log(err);
+	          //return res.status(500).json({ success: false, data: err});
+	        }
+	  		
 
-			//console.log("PROD;:", product);
-
-
-			pg.connect(conString, function(err, client, done) {
-
-				if(err) {
-					return console.error('error fetching client from pool', err);
-				}
+	  		data.products.forEach(function(entry) {
 				
-				client.query("INSERT INTO products  (name,description,shopify_id,photo,variants,price,shopify_updated) VALUES ($1,$2,$3,$4,$5,$6,$7)", [name,description,shopify_id,photo,variants,price,shopify_updated], function(err, result) {
+				name = entry.title;
+				description = "";
+				if ( entry.body_html != undefined )
+					description = entry.body_html;
+				shopify_id = entry.id ;
+				photo = "";
+				if (entry.image != undefined)
+					photo = entry.image.src;
+				variants = entry.variants.length;
+				price=0;
+				if (variants > 0)
+					price = entry.variants[0].price
+				shopify_updated = entry.updated_at;
 
-					//call `done()` to release the client back to the pool
-					done();
+				product = {name: name , description: description, photo: photo, shopify_id: shopify_id, variants: variants, price: price, shopify_updated: shopify_updated };
 
-					if(err) {
-						return console.error('error running query', err);
-					}
+				//console.log("PROD;:", product);
 
-					console.log(result.rows[0]);
-					//output: 1
-				});
+				var results = [];
+				// Get a Postgres client from the connection pool
+			  
+		        // SQL Query > Select Data
+		        var query = client.query("SELECT count(*) as count, $1::varchar(40) as name, $2::text as description, $3::varchar(40) as shopify_id, $4::text as photo, $5::integer as variants, $6::float as price, $7::varchar(40) as shopify_updated  FROM products WHERE shopify_id = $3",[name,description,shopify_id,photo,variants,price,shopify_updated]);
 
-			});
+		        // Stream results back one row at a time
+		        query.on('row', function(row) {
+		            results.push(row);
+		        });
 
+		        // After all data is returned, close connection and return results
+		        query.on('end', function() {
+		            done();
+		            row = results[0]
+		            console.log('comments', row);
+		            values = [row.name,row.description,row.shopify_id,row.photo,row.variants,row.price,row.shopify_updated];
+		            if (results.length == 1){
+		            	client.query("INSERT INTO products (name,description,shopify_id,photo,variants,price,shopify_updated) VALUES ($1,$2,$3,$4,$5,$6,$7)",values);
+		            	console.log("Nuevo Product", values);
+		            }else{
+		            	client.query("UPDATE products SET name = $1, description = $2, shopify_id = $3, photo = $4, variants = $5, price = $6, shopify_updated = $7 WHERE shopify_id = $3 ",values);
+		            	console.log("Editar Producto", values);
+		            }
+		            //socket.emit('comments', results);
+		        });
+
+		    });
 			/*
 			//Search
 			connection.query('SELECT count(*) as count, ? as name, ? as description, ? as shopify_id, ? as photo,? as variants, ? as price, ? as shopify_updated FROM products WHERE shopify_id = "'+shopify_id+'"',
@@ -461,7 +479,7 @@ function update_products(){
 	});
 }
 
-//update_products();
+update_products();
 /*
 Shopify = require('shopify-api-node');
 
