@@ -448,10 +448,10 @@ function update_products(){
 		        // After all data is returned, close connection and return results
 		        query.on('end', function() {
 		            done();
-		            row = results[0]
-		            console.log('comments', row);
+		            row = results[0];
+		            //console.log('Product', row);
 		            values = [row.name,row.description,row.shopify_id,row.photo,row.variants,row.price,row.shopify_updated];
-		            if (results.length == 1){
+		            if ( row.count == '0'){
 		            	client.query("INSERT INTO products (name,description,shopify_id,photo,variants,price,shopify_updated) VALUES ($1,$2,$3,$4,$5,$6,$7)",values);
 		            	console.log("Nuevo Product", values);
 		            }else{
