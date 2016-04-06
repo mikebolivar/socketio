@@ -510,7 +510,7 @@ function update_products(){
 	});
 }
 
-update_products();
+//update_products();
 /*
 Shopify = require('shopify-api-node');
 
