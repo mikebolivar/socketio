@@ -23,7 +23,7 @@ var CommentBox = React.createClass({
   	},
   	componentDidMount: function() {
   		var that = this;
-		this.socket = io();
+		this.socket = io('https://stark-shore-49013.herokuapp.com');
 		this.socket.on('comments', function (comments) {
 			that.setState({ comments: comments });
 		});
