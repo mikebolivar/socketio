@@ -451,13 +451,13 @@ function update_products(){
 		            row = results[0];
 		            //console.log('Product', row);
 		            values = [row.name,row.description,row.shopify_id,row.photo,row.variants,row.price,row.shopify_updated];
-		            if ( true ){
+		            /*if ( true ){
 		            	client.query("INSERT INTO products (name,description,shopify_id,photo,variants,price,shopify_updated) VALUES ($1,$2,$3,$4,$5,$6,$7)",values);
 		            	console.log("Nuevo Product", values);
 		            }else{
 		            	client.query("UPDATE products SET name = $1, description = $2, shopify_id = $3, photo = $4, variants = $5, price = $6, shopify_updated = $7 WHERE shopify_id = $3 ",values);
 		            	console.log("Editar Producto", values);
-		            }
+		            }*/
 		            //socket.emit('comments', results);
 		        });
 
